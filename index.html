@@ -268,7 +268,46 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
   <button class="nav-btn" id="nav-minimos" onclick="goScreen('minimos')">
     <span class="ni">🎯</span>MÍNIMOS
   </button>
+  <button class="nav-btn" id="nav-pedido" onclick="goScreen('pedido')">
+    <span class="ni">🛒</span>PEDIDO<span class="dot"></span>
+  </button>
 </div>
+</div>
+
+<!-- ══ PEDIDO ══ -->
+<div class="screen" id="s-pedido">
+  <div class="panel-head">
+    <h2>🛒 Pedido</h2>
+    <div style="display:flex;align-items:center;gap:8px">
+      <span class="last-update" id="pedido-fecha"></span>
+      <button class="refresh-btn" id="pedido-refresh" onclick="generarPedido()">↻</button>
+    </div>
+  </div>
+  <div style="display:flex;gap:8px;padding:0 16px 8px;flex-shrink:0">
+    <span class="pchip-r" id="pchip-cero" style="flex:1;text-align:center;padding:6px 10px;border-radius:8px;font-size:12px;font-family:var(--mono);background:var(--red-dim);border:1px solid var(--red);color:var(--red)">🔴 Sin stock: —</span>
+    <span class="pchip-a" id="pchip-bajo" style="flex:1;text-align:center;padding:6px 10px;border-radius:8px;font-size:12px;font-family:var(--mono);background:var(--amber-dim);border:1px solid var(--amber);color:var(--amber)">🟡 Bajo mínimo: —</span>
+  </div>
+  <div style="padding:0 16px 8px;flex-shrink:0">
+    <input type="text" id="pedido-nota" placeholder="Nota para el pedido (opcional)…"
+      style="width:100%;background:var(--surface);border:1px solid var(--border2);border-radius:8px;padding:7px 12px;color:var(--text);font-family:var(--font);font-size:12px;outline:none">
+  </div>
+  <div class="list-scroll" id="pedido-list">
+    <div class="state-msg"><div class="big">🛒</div><p>Tocá ↻ para generar el pedido<br><small style="font-size:11px">Se arma desde el panel actual y los mínimos</small></p></div>
+  </div>
+  <div id="pedido-send-bar" style="display:none;background:var(--surface);border-top:1px solid var(--border);padding:10px 16px;gap:8px;flex-shrink:0;flex-wrap:wrap">
+    <button class="btn" onclick="enviarWhatsApp()" style="flex:1;justify-content:center;background:#25d366;color:#fff;min-width:90px">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+      WhatsApp
+    </button>
+    <button class="btn" onclick="enviarEmail()" style="flex:1;justify-content:center;background:#4285f4;color:#fff;min-width:90px">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 7L2 7"/></svg>
+      Email
+    </button>
+    <button class="btn btn-ghost btn-sm" onclick="copiarTexto()" style="flex:1;justify-content:center;min-width:90px">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+      Copiar
+    </button>
+  </div>
 </div>
 
 <div id="toast"></div>
@@ -329,6 +368,7 @@ function goScreen(name) {
   document.getElementById("nav-"+name).classList.add("active");
   if (name==="panel")   cargarPanel();
   if (name==="minimos") initMinimos();
+  if (name==="pedido")  generarPedido();
 }
 
 // ═══════════════════════════════════════════════
@@ -597,6 +637,185 @@ async function guardarMinimos() {
     else toast("Error: "+j.error, false);
   } catch { toast("Error de conexión", false); }
   btn.disabled=false; btn.textContent="💾 Guardar mínimos";
+}
+
+// ═══════════════════════════════════════════════
+//  SCREEN: PEDIDO
+// ═══════════════════════════════════════════════
+let pedidoItems = []; // [{producto, tipo, stock, minimo, campo, sugerido, cantidad}]
+
+async function generarPedido() {
+  if (!URL) { openModal(); return; }
+  const rbtn = document.getElementById("pedido-refresh");
+  rbtn.classList.add("spin");
+  document.getElementById("pedido-list").innerHTML = `<div class="state-msg"><div class="big">⏳</div><p>Generando pedido…</p></div>`;
+  document.getElementById("pedido-send-bar").style.display = "none";
+
+  try {
+    // traer panel y mínimos frescos
+    const [pj, mj] = await Promise.all([ api({action:"panel"}), api({action:"getMinimos"}) ]);
+    if (pj.ok) panelData = pj.data;
+    if (mj.ok) { minimos = mj.data; miniLoaded = true; }
+    calcularPedido();
+  } catch { toast("Error generando pedido", false); }
+  rbtn.classList.remove("spin");
+}
+
+function calcularPedido() {
+  if (!panelData) return;
+  pedidoItems = [];
+
+  const all = [...(panelData.bebidas||[]), ...(panelData.cigarrillos||[])];
+
+  all.forEach(row => {
+    const m = minimos[row.producto];
+    const campos = row.tipo === "bebidas"
+      ? [{c:"deposito",lbl:"Dep."},{c:"camara",lbl:"Cám."},{c:"gondola",lbl:"Gón."}]
+      : [{c:"deposito",lbl:"Dep."},{c:"gondola",lbl:"Gón."}];
+
+    // Usamos el campo con mayor déficit como representativo
+    // Pero mostramos TOTAL de lo que falta (deposito+camara+gondola vs su mínimo total)
+    let stockTotal = 0, minimoTotal = 0;
+    campos.forEach(({c}) => {
+      const stock = Number(row[c]) || 0;
+      const min   = m ? (Number(m[c]) || 0) : 0;
+      stockTotal  += stock;
+      minimoTotal += min;
+    });
+
+    if (!m || minimoTotal === 0) return; // sin mínimo definido, no se incluye
+
+    const deficit = minimoTotal - stockTotal;
+    if (deficit <= 0) return; // OK, no se incluye
+
+    pedidoItems.push({
+      producto: row.producto,
+      tipo:     row.tipo,
+      stockTotal,
+      minimoTotal,
+      sugerido: deficit,
+      cantidad: deficit, // editable por el usuario
+      esCero:   stockTotal === 0,
+    });
+  });
+
+  renderPedido();
+}
+
+function renderPedido() {
+  const pl = document.getElementById("pedido-list");
+  const sendBar = document.getElementById("pedido-send-bar");
+
+  if (!pedidoItems.length) {
+    pl.innerHTML = `<div class="state-msg"><div class="big">✅</div><p>¡Todo el stock está en orden!<br><small style="font-size:11px">No hay productos por debajo del mínimo</small></p></div>`;
+    sendBar.style.display = "none";
+    document.getElementById("pchip-cero").textContent = "🔴 Sin stock: 0";
+    document.getElementById("pchip-bajo").textContent = "🟡 Bajo mínimo: 0";
+    document.getElementById("pedido-fecha").textContent = new Date().toLocaleTimeString("es-AR",{hour:"2-digit",minute:"2-digit"});
+    document.getElementById("nav-pedido").classList.remove("has-alert");
+    return;
+  }
+
+  const enCero = pedidoItems.filter(i => i.esCero);
+  const bajos  = pedidoItems.filter(i => !i.esCero);
+  document.getElementById("pchip-cero").textContent = `🔴 Sin stock: ${enCero.length}`;
+  document.getElementById("pchip-bajo").textContent = `🟡 Bajo mínimo: ${bajos.length}`;
+  document.getElementById("pedido-fecha").textContent = new Date().toLocaleTimeString("es-AR",{hour:"2-digit",minute:"2-digit"});
+  document.getElementById("nav-pedido").classList.add("has-alert");
+
+  let html = "";
+
+  const renderGroup = (items, titulo, colorClass) => {
+    if (!items.length) return "";
+    let h = `<div style="padding:6px 16px 3px;font-size:10px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.5px;background:var(--bg);position:sticky;top:0;z-index:5;color:var(--muted);border-bottom:1px solid var(--border)">${titulo}</div>`;
+    // col headers
+    h += `<div style="display:grid;grid-template-columns:1fr 60px 60px 44px;gap:6px;padding:4px 16px;background:var(--surface2);border-bottom:1px solid var(--border)">
+      <span style="font-size:9px;font-family:var(--mono);color:var(--muted);text-transform:uppercase">Producto</span>
+      <span style="font-size:9px;font-family:var(--mono);color:var(--muted);text-transform:uppercase;text-align:center">Stock</span>
+      <span style="font-size:9px;font-family:var(--mono);color:var(--muted);text-transform:uppercase;text-align:center">Mínimo</span>
+      <span style="font-size:9px;font-family:var(--mono);color:var(--muted);text-transform:uppercase;text-align:center">Pedir</span>
+    </div>`;
+    h += items.map((item, idx) => {
+      const globalIdx = pedidoItems.indexOf(item);
+      const rowBg = item.esCero ? "background:color-mix(in srgb,var(--red-dim) 40%,transparent)" : "background:color-mix(in srgb,var(--amber-dim) 30%,transparent)";
+      return `<div style="display:grid;grid-template-columns:1fr 60px 60px 44px;gap:6px;align-items:center;padding:7px 16px;border-bottom:1px solid var(--border);${rowBg}">
+        <span style="font-size:11px;line-height:1.3;color:var(--text)">${item.producto.length>44?item.producto.slice(0,42)+"…":item.producto}
+          <span style="display:block;font-size:9px;color:var(--muted);font-family:var(--mono)">${item.tipo==="bebidas"?"🥤":"🚬"}</span>
+        </span>
+        <div style="text-align:center;font-family:var(--mono);font-size:13px;font-weight:600;color:${item.esCero?"var(--red)":"var(--amber)"}">${item.stockTotal}</div>
+        <div style="text-align:center;font-family:var(--mono);font-size:13px;color:var(--muted)">${item.minimoTotal}</div>
+        <input class="num" type="number" min="1" inputmode="numeric" value="${item.cantidad}"
+          style="border-color:var(--blue);color:var(--blue);font-weight:600"
+          oninput="pedidoItems[${globalIdx}].cantidad=Number(this.value)||0">
+      </div>`;
+    }).join("");
+    return h;
+  };
+
+  if (enCero.length)  html += renderGroup(enCero,  "🔴 Sin stock — pedir urgente", "red");
+  if (bajos.length)   html += renderGroup(bajos,   "🟡 Por debajo del mínimo", "amber");
+
+  pl.innerHTML = html;
+  sendBar.style.display = "flex";
+}
+
+function buildTexto() {
+  const nota = document.getElementById("pedido-nota").value.trim();
+  const fecha = new Date().toLocaleDateString("es-AR",{day:"2-digit",month:"2-digit",year:"numeric"});
+  let txt = `📦 *PEDIDO DE STOCK* — ${fecha}\n`;
+  if (nota) txt += `📝 ${nota}\n`;
+  txt += `\n`;
+
+  const enCero = pedidoItems.filter(i=>i.esCero);
+  const bajos  = pedidoItems.filter(i=>!i.esCero);
+
+  if (enCero.length) {
+    txt += `🔴 *SIN STOCK — URGENTE*\n`;
+    enCero.forEach(i => {
+      const cant = Number(i.cantidad)||0;
+      txt += `• ${i.producto} → pedir *${cant}* (stock: 0, mín: ${i.minimoTotal})\n`;
+    });
+    txt += `\n`;
+  }
+  if (bajos.length) {
+    txt += `🟡 *BAJO MÍNIMO*\n`;
+    bajos.forEach(i => {
+      const cant = Number(i.cantidad)||0;
+      txt += `• ${i.producto} → pedir *${cant}* (stock: ${i.stockTotal}, mín: ${i.minimoTotal})\n`;
+    });
+    txt += `\n`;
+  }
+  const total = pedidoItems.reduce((s,i)=>s+(Number(i.cantidad)||0),0);
+  txt += `📊 Total: ${pedidoItems.length} productos, ${total} unidades`;
+  return txt;
+}
+
+function enviarWhatsApp() {
+  if (!pedidoItems.length) return;
+  const txt = buildTexto();
+  window.open("https://wa.me/?text=" + encodeURIComponent(txt), "_blank");
+}
+
+function enviarEmail() {
+  if (!pedidoItems.length) return;
+  const txt = buildTexto().replace(/\*/g,""); // sin bold para email
+  const nota = document.getElementById("pedido-nota").value.trim();
+  const asunto = encodeURIComponent("Pedido de Stock — " + new Date().toLocaleDateString("es-AR"));
+  window.open(`mailto:?subject=${asunto}&body=${encodeURIComponent(txt)}`, "_blank");
+}
+
+function copiarTexto() {
+  if (!pedidoItems.length) return;
+  const txt = buildTexto();
+  navigator.clipboard.writeText(txt).then(()=>toast("✅ Copiado al portapapeles", true)).catch(()=>{
+    // fallback
+    const ta = document.createElement("textarea");
+    ta.value = txt; ta.style.position="fixed"; ta.style.opacity="0";
+    document.body.appendChild(ta); ta.select();
+    document.execCommand("copy");
+    document.body.removeChild(ta);
+    toast("✅ Copiado al portapapeles", true);
+  });
 }
 
 // ═══════════════════════════════════════════════
